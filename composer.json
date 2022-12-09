@@ -41,7 +41,8 @@
         "dragonmantank/cron-expression": "^3.1",
         "laravel/legacy-factories": "^1.1",
         "fruitcake/laravel-cors": "^2.0",
-        "tigitz/php-spellchecker": "^0.2.1"
+        "tigitz/php-spellchecker": "^0.2.1",
+        "symfony/dom-crawler": "^5.4"
     },
     "require-dev": {
         "mockery/mockery": "^1.4.2",
