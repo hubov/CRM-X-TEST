@@ -6,6 +6,7 @@ use App\Core\AbstractRepository;
 use App\Modules\Importer\Models\Importer;
 use Illuminate\Container\Container;
 use App\Modules\Importer\Http\Requests\ImporterRequest;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Importer repository class
@@ -38,5 +39,10 @@ class ImporterRepository extends AbstractRepository
         $req = new ImporterRequest();
 
         return $req->getFrontendRules();
+    }
+
+    public function getAll()
+    {
+        return Importer::all();
     }
 }

@@ -2,4 +2,6 @@
 
 $NS = MODULES_NS.'Importer\Http\Controllers\\';
 
-$router->resource('importers', $NS.'ImporterController');
+$router->resource('importer.', $NS.'ImporterController');
+
+$router->get('importer', $NS.'ImporterController@index');

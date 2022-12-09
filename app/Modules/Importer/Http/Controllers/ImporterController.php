@@ -9,6 +9,7 @@ use Illuminate\Config\Repository as Config;
 use App\Modules\Importer\Http\Requests\ImporterRequest;
 use Illuminate\Http\Response;
 use App;
+use Illuminate\View\View;
 
 /**
  * Class ImporterController
@@ -31,7 +32,6 @@ class ImporterController extends Controller
      */
     public function __construct(ImporterRepository $importerRepository)
     {
-        $this->middleware('auth');
         $this->importerRepository = $importerRepository;
     }
 
@@ -44,9 +44,11 @@ class ImporterController extends Controller
      */
     public function index(Config $config)
     {
-        $this->checkPermissions(['importer.index']);
-        $onPage = $config->get('system_settings.importer_pagination');
-        $list = $this->importerRepository->paginate($onPage);
+        $list = $this->importerRepository->getAll();
+//        $onPage = $config->get('system_settings.importer_pagination');
+//        $list = $this->importerRepository->paginate($onPage);
+
+        return view('Importer.index', ['list' => $list]);
 
         return response()->json($list);
     }
