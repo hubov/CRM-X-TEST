@@ -20,6 +20,7 @@ $modules = [
     'User',
     'UserSettings',
     'WorkOrder',
+'Importer',
 ];
 
 $path = realpath(__DIR__ . '/../app/Modules/');
