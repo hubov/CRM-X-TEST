@@ -4,6 +4,7 @@ namespace App\Modules\Importer\Http\Controllers;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use App\Modules\Importer\Http\Requests\UploadRequest;
 use App\Modules\Importer\Repositories\ImporterRepository;
 use Illuminate\Config\Repository as Config;
 use App\Modules\Importer\Http\Requests\ImporterRequest;
@@ -49,8 +50,11 @@ class ImporterController extends Controller
 //        $list = $this->importerRepository->paginate($onPage);
 
         return view('Importer.index', ['list' => $list]);
+    }
 
-        return response()->json($list);
+    public function uploadFile(UploadRequest $request)
+    {
+
     }
 
     /**

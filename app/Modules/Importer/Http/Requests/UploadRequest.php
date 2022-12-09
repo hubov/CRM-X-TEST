@@ -4,7 +4,7 @@ namespace App\Modules\Importer\Http\Requests;
 
 use App\Http\Requests\Request;
 
-class ImporterRequest extends Request
+class UploadRequest extends Request
 {
     /**
      * Get the validation rules that apply to the request.
@@ -13,6 +13,8 @@ class ImporterRequest extends Request
      */
     public function rules()
     {
-        return [];
+        return [
+            'workorders' => 'required|file|mimetypes:text/html|max:2048'
+        ];
     }
 }
