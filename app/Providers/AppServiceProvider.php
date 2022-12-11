@@ -105,5 +105,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bindMethod([ParseWorkOrders::class, 'handle'], function ($job, $app) {
             return $job->handle($app->make(WorkOrdersParserServiceContract::class));
         });
+
+        $this->app->bind(
+            \App\Modules\Importer\Services\ImporterExportServiceContract::class,
+            \App\Modules\Importer\Services\CSVImporterExportService::class
+        );
     }
 }
