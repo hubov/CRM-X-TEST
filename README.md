@@ -1,51 +1,26 @@
-# Test Task CRM-X
+# WORK ORDER IMPORTER
 
-This is a code extracted from a hypothetical complex CRM system "CRM-X"
+This module performs work orders imports. It parses HTML files and extracts required data.
 
-### Key notes:
+## Requirements
 
-Laravel's default config system has been replaced with the cascading config system (from Laravel 5)
+The module requires Symfony DOM Scraper to parse HTML files.
 
-Files from `/config/<environment>/` override the defaults from `/config/`
+## Usage:
 
-Environment is best to be set via `APP_ENV=local` environment variable or `--env=local` artisan command option
+### Web interface
 
-For simplicity, frontend part has been removed completely, so you will start from scratch
+Web interface of the importer module is accessible at `/importer`
 
-### Setup
+### Console interface
 
-1. Create a new MySQL database
-2. Import database from the file `db.sql`
-3. Set your database connection in the database config file
+Command to import a file via command line: `import:workorders {file}`
+{file} is a file name/path to be parsed
 
-## The Task
+### Reports
 
-### Create a new module called Importer
-- this system is organized into modules, feel free to use existing modules for reference and/or use the dedicated commands
-- this module holds functionality of importing various data from HTML files
-- implements importing WorkOrders from the file `work_orders.html`
-- each import run should be stored in DB table `importer_log` - create table migration ( id, type, run_at, entries_processed, entries_created )
-- allows user to import new file and to see log of previously completed imports
-- exposes both web interface (simple view, no authentication required) and console interface (artisan command)
+A CSV report is generated after a successful data import. A download is instantly triggered on web interface.
+Reports are also accessible via web interface on the page `/importer` at any time. 
 
-### Logic of WorkOrders import
-- new work orders should be created in the database `work_order` table
-- there should be no duplicates in `work_order_number` column
-- once the import completes, user should receive a report in a CSV file
-- CSV report should contain data of each parsed work order plus a note whether it has been created or skipped because it already existed in DB
-- HTML to database columns mapping:
-  - `Ticket` -> `work_order.work_order_number`
-  - `entityid` from `Ticket` link href (e.g. "t6UJ9A06IAK4") -> `work_order.external_id`
-  - `Urgancy` -> `work_order.priority`
-  - `Rcvd Date` -> `work_order.received_date`
-  - `Category` -> `work_order.category`
-  - `Store Name` -> `work_order.fin_loc`
-
-### Tips
-- feel free to use any 3rd party packages you will find useful for the task (remember to add them to composer)
-- browser's web tools can help while finding elements to parse in the HTML
-- no need for a fancy view, it only needs to be functional
-- we prefer using high level database abstractions such as models instead of raw SQL
-- we appreciate code that's easily readable and maintainable
-
-*Good luck!*
+The report contains parsed data and a notice about status of each record - if a new work order record was created or skipped. 
+Records are skipped if database contains a work order number already.
