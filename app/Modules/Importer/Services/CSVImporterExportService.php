@@ -22,7 +22,7 @@ class CSVImporterExportService implements ImporterExportServiceContract
 
     public function generate($data, $path)
     {
-        $file = fopen(storage_path('app/local/'.$path), 'a+');
+        $file = fopen(storage_path('app/public/'.$path), 'a+');
 
         foreach ($data as $row) {
             fputcsv($file, $row);
