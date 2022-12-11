@@ -94,5 +94,10 @@ class AppServiceProvider extends ServiceProvider
 
             return $handler;
         });
+
+        $this->app->bind(
+            \App\Modules\Importer\Services\WorkOrdersParserServiceContract::class,
+            \App\Modules\Importer\Services\WorkOrdersParserService::class
+        );
     }
 }

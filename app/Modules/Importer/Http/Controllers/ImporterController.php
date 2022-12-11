@@ -6,7 +6,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Modules\Importer\Http\Requests\UploadRequest;
 use App\Modules\Importer\Repositories\ImporterRepository;
-use App\Modules\Importer\Services\WorkOrdersParserService;
+use App\Modules\Importer\Services\WorkOrdersParserServiceContract;
 use Illuminate\Config\Repository as Config;
 use App\Modules\Importer\Http\Requests\ImporterRequest;
 use Illuminate\Http\Response;
@@ -53,7 +53,7 @@ class ImporterController extends Controller
         return view('Importer.index', ['list' => $list]);
     }
 
-    public function uploadFile(UploadRequest $request, WorkOrdersParserService $parser)
+    public function uploadFile(UploadRequest $request, WorkOrdersParserServiceContract $parser)
     {
         $parser->parse(file_get_contents($request->file('workorders')))->storeWorkOrders();
     }

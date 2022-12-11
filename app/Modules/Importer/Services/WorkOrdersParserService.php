@@ -5,10 +5,9 @@ namespace App\Modules\Importer\Services;
 use App\Modules\Importer\Models\Importer;
 use App\Modules\WorkOrder\Models\WorkOrder;
 use Illuminate\Container\Container;
-use Illuminate\Database\QueryException;
 use Symfony\Component\DomCrawler\Crawler;
 
-class WorkOrdersParserService
+class WorkOrdersParserService implements WorkOrdersParserServiceContract
 {
     /**
      * @var Container
