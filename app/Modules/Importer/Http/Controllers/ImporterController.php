@@ -2,15 +2,16 @@
 
 namespace App\Modules\Importer\Http\Controllers;
 
-use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Modules\Importer\Http\Requests\UploadRequest;
+use App\Modules\Importer\Jobs\ParseWorkOrders;
+use App\Modules\Importer\Models\Importer;
 use App\Modules\Importer\Repositories\ImporterRepository;
-use App\Modules\Importer\Services\WorkOrdersParserServiceContract;
 use Illuminate\Config\Repository as Config;
 use App\Modules\Importer\Http\Requests\ImporterRequest;
 use Illuminate\Http\Response;
 use App;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 /**
@@ -53,9 +54,15 @@ class ImporterController extends Controller
         return view('Importer.index', ['list' => $list]);
     }
 
-    public function uploadFile(UploadRequest $request, WorkOrdersParserServiceContract $parser)
+    public function uploadFile(UploadRequest $request)
     {
-        $parser->parse(file_get_contents($request->file('workorders')))->storeWorkOrders();
+        $importer = new Importer();
+        $importer->type = 0;
+        $importer->saveQuietly();
+
+        Storage::disk('local')->put('workorders/'.$importer->id.'.html', file_get_contents($request->file('workorders')));
+
+        ParseWorkOrders::dispatch($importer);
     }
 
     /**
