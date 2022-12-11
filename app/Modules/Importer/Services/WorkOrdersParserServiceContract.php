@@ -28,5 +28,10 @@ interface WorkOrdersParserServiceContract
      */
     public function storeWorkOrders();
 
+    /**
+     * Set importer related to parsing job.
+     *
+     * @return void
+     */
     public function setImporter(Importer $importer);
 }
