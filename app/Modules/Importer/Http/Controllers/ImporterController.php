@@ -7,6 +7,7 @@ use App\Modules\Importer\Http\Requests\UploadRequest;
 use App\Modules\Importer\Jobs\ParseWorkOrders;
 use App\Modules\Importer\Models\Importer;
 use App\Modules\Importer\Repositories\ImporterRepository;
+use App\Modules\Importer\Services\WorkOrdersParserServiceContract;
 use Illuminate\Config\Repository as Config;
 use App\Modules\Importer\Http\Requests\ImporterRequest;
 use Illuminate\Http\Response;
@@ -54,7 +55,7 @@ class ImporterController extends Controller
         return view('Importer.index', ['list' => $list]);
     }
 
-    public function uploadFile(UploadRequest $request)
+    public function uploadFile(UploadRequest $request, WorkOrdersParserServiceContract $parser)
     {
         $importer = new Importer();
         $importer->type = 0;
@@ -62,7 +63,22 @@ class ImporterController extends Controller
 
         Storage::disk('local')->put('workorders/'.$importer->id.'.html', file_get_contents($request->file('workorders')));
 
-        ParseWorkOrders::dispatch($importer);
+        $fileName = $importer->id.'.html';
+
+        $parser->setImporter($importer);
+        $filePath = $parser->parse(Storage::get('workorders/'.$fileName))->storeWorkOrders();
+
+        $fileName = 'report-'.$importer->id.'.csv';
+
+        $headers = array(
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        );
+
+        return Storage::download($filePath, $fileName, $headers);
     }
 
     /**

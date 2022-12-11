@@ -20,6 +20,11 @@ class WorkOrdersParserService implements WorkOrdersParserServiceContract
     protected $importer;
 
     /**
+     * @var ImporterExportServiceContract
+     */
+    protected $exporter;
+
+    /**
      * @var array
      */
     protected $results = [];
@@ -41,10 +46,11 @@ class WorkOrdersParserService implements WorkOrdersParserServiceContract
      * @param Importer $importer
      */
 
-    public function __construct(Container $app, Importer $importer)
+    public function __construct(Container $app, Importer $importer, ImporterExportServiceContract $exporter)
     {
         $this->app = $app;
         $this->importer = $importer;
+        $this->exporter = $exporter;
     }
 
     public function setImporter(Importer $importer)
@@ -81,7 +87,7 @@ class WorkOrdersParserService implements WorkOrdersParserServiceContract
     public function storeWorkOrders()
     {
         if (!empty($this->results)) {
-            foreach ($this->results as $result) {
+            foreach ($this->results as $key => $result) {
                 if (!WorkOrder::where('work_order_number', $result['work_order_number'])->exists()) {
                     $order = new WorkOrder();
                     $order->work_order_number = $result['work_order_number'];
@@ -92,7 +98,11 @@ class WorkOrdersParserService implements WorkOrdersParserServiceContract
                     $order->fin_loc = $result['fin_loc'];
                     $order->saveQuietly();
 
+                    $this->results[$key]['status'] = 'created';
+
                     $this->newOrders++;
+                } else {
+                    $this->results[$key]['status'] = 'skipped';
                 }
             }
         }
@@ -102,6 +112,11 @@ class WorkOrdersParserService implements WorkOrdersParserServiceContract
             'entries_created' => $this->newOrders
         ]);
         $this->importer->saveQuietly();
+
+        $filePath = 'reports/'.$this->importer->id.'.csv';
+        $this->exporter->generate($this->results, $filePath);
+
+        return $filePath;
     }
 
     protected function getOrderNumber($node)
