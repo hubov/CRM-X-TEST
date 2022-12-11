@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Core\Crm;
 use App\Core\Trans;
+use App\Modules\Importer\Jobs\ParseWorkOrders;
+use App\Modules\Importer\Services\WorkOrdersParserServiceContract;
 use App\Modules\Type\Models\Type;
 use App\Modules\Type\Repositories\TypeMemcachedRepository;
 use Illuminate\Pagination\Paginator;
@@ -99,5 +101,9 @@ class AppServiceProvider extends ServiceProvider
             \App\Modules\Importer\Services\WorkOrdersParserServiceContract::class,
             \App\Modules\Importer\Services\WorkOrdersParserService::class
         );
+
+        $this->app->bindMethod([ParseWorkOrders::class, 'handle'], function ($job, $app) {
+            return $job->handle($app->make(WorkOrdersParserServiceContract::class));
+        });
     }
 }
