@@ -3,14 +3,16 @@
 namespace App\Modules\Importer\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Importer\Exceptions\ImporterMissingValueException;
+use App\Modules\Importer\Exceptions\ImporterNoOrdersFoundException;
 use App\Modules\Importer\Http\Requests\UploadRequest;
 use App\Modules\Importer\Models\Importer;
 use App\Modules\Importer\Repositories\ImporterRepository;
 use App\Modules\Importer\Services\WorkOrdersParserServiceContract;
 use Illuminate\Config\Repository as Config;
-use App\Modules\Importer\Http\Requests\ImporterRequest;
 use Illuminate\Http\Response;
 use App;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -64,7 +66,15 @@ class ImporterController extends Controller
         $fileName = $importer->id . '.html';
 
         $parser->setImporter($importer);
-        $filePath = $parser->parse(Storage::get('workorders/' . $fileName))->storeWorkOrders();
+        try {
+            $filePath = $parser->parse(Storage::get('workorders/' . $fileName))->storeWorkOrders();
+        } catch (ImporterMissingValueException $e) {
+            Log::notice($e->errorMessage());
+        } catch (ImporterNoOrdersFoundException $e) {
+            Log::error($e->errorMessage());
+            echo $e->errorMessage();
+            die;
+        }
 
         $fileName = 'report-' . $importer->id . '.csv';
 

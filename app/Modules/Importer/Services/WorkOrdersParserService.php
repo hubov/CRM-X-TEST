@@ -2,10 +2,14 @@
 
 namespace App\Modules\Importer\Services;
 
+use App\Modules\Importer\Exceptions\ImporterDateFormatInvalidException;
+use App\Modules\Importer\Exceptions\ImporterMissingValueException;
+use App\Modules\Importer\Exceptions\ImporterNoOrdersFoundException;
 use App\Modules\Importer\Models\Importer;
 use App\Modules\WorkOrder\Models\WorkOrder;
 use Illuminate\Container\Container;
 use Symfony\Component\DomCrawler\Crawler;
+use Throwable;
 
 class WorkOrdersParserService implements WorkOrdersParserServiceContract
 {
@@ -79,6 +83,8 @@ class WorkOrdersParserService implements WorkOrdersParserServiceContract
                     $this->parsedOrders++;
                 }
             }
+        } else {
+            throw new ImporterNoOrdersFoundException();
         }
 
         return $this;
@@ -123,8 +129,8 @@ class WorkOrdersParserService implements WorkOrdersParserServiceContract
     {
         try {
             $result = $node->children()->first()->text();
-        }  catch (\Throwable $exception) {
-            $result = '';
+        }  catch (Throwable $exception) {
+            throw new ImporterMissingValueException('order_number');
         }
 
         return $result;
@@ -135,8 +141,9 @@ class WorkOrdersParserService implements WorkOrdersParserServiceContract
         try {
             $child = $node->filter('a');
             $result = explode("#", explode("&", explode("entityid=", $child->extract(['href'])[0])[1])[0])[0];
-        }  catch (\Throwable $exception) {
-            $result = '';
+        }  catch (Throwable $exception) {
+            throw new ImporterMissingValueException('external_id');
+            return false;
         }
 
         return $result;
@@ -151,8 +158,10 @@ class WorkOrdersParserService implements WorkOrdersParserServiceContract
             }
 
 
-        }  catch (\Throwable $exception) {
+        }  catch (Throwable $exception) {
             $result = '';
+            throw new ImporterMissingValueException('priority');
+            return false;
         }
 
         return $result;
@@ -167,8 +176,9 @@ class WorkOrdersParserService implements WorkOrdersParserServiceContract
             }
 
             $result = $node->children()->eq($column)->text();
-        }  catch (\Throwable $exception) {
+        }  catch (Throwable $exception) {
             $result = '';
+            throw new ImporterMissingValueException('received_date');
         }
 
         return $result;
@@ -183,8 +193,9 @@ class WorkOrdersParserService implements WorkOrdersParserServiceContract
             }
 
             $result = $node->children()->eq($column)->text();
-        }  catch (\Throwable $exception) {
+        }  catch (Throwable $exception) {
             $result = '';
+            throw new ImporterMissingValueException('category');
         }
         return $result;
     }
@@ -198,8 +209,9 @@ class WorkOrdersParserService implements WorkOrdersParserServiceContract
             }
 
             $result = $node->children()->eq($column)->text();
-        }  catch (\Throwable $exception) {
+        }  catch (Throwable $exception) {
             $result = '';
+            throw new ImporterMissingValueException('store_name');
         }
 
         return $result;
@@ -207,6 +219,11 @@ class WorkOrdersParserService implements WorkOrdersParserServiceContract
 
     protected function formatDate($date)
     {
-        return (new \DateTime($date))->format('Y-m-d H:i:s');
+        try {
+            return (new \DateTime($date))->format('Y-m-d H:i:s');
+        } catch (ImporterDateFormatInvalidException $e) {
+            echo $e->errorMessage();
+        }
+
     }
 }

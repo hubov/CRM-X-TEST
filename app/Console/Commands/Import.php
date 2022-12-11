@@ -2,10 +2,16 @@
 
 namespace App\Console\Commands;
 
+use App\Modules\Importer\Exceptions\ImporterMissingValueException;
+use App\Modules\Importer\Exceptions\ImporterNoOrdersFoundException;
+use App\Modules\Importer\Http\Requests\UploadRequest;
 use App\Modules\Importer\Models\Importer;
 use App\Modules\Importer\Services\WorkOrdersParserServiceContract;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class Import extends Command
 {
@@ -43,13 +49,21 @@ class Import extends Command
         $importer->type = 0;
         $importer->saveQuietly();
 
-        Storage::disk('local')->put('workorders/' . $importer->id . '.html', file_get_contents(base_path() . '/' . $this->argument('file')));
+        Storage::disk('local')->put('workorders/' . $importer->id . '.html', file_get_contents($this->argument('file')));
 
         $fileName = $importer->id . '.html';
 
         $parser->setImporter($importer);
 
-        $filePath = $parser->parse(Storage::get('workorders/' . $fileName))->storeWorkOrders();
+        try {
+            $filePath = $parser->parse(Storage::get('workorders/' . $fileName))->storeWorkOrders();
+        } catch (ImporterMissingValueException $e) {
+            Log::notice($e->errorMessage());
+        } catch (ImporterNoOrdersFoundException $e) {
+            Log::error($e->errorMessage());
+            echo $e->errorMessage();
+            die;
+        }
 
         $this->info('Import successful! Your CSV report is here: storage/public/' . $filePath);
     }
