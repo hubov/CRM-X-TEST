@@ -12,7 +12,7 @@ class Importer extends LogModel
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'modified_at';
 
-    protected $fillable = [];
+    protected $fillable = ['type', 'run_at', 'entries_processed', 'entries_created'];
 
     // relationships
 

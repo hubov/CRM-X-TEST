@@ -2,9 +2,10 @@
 
 namespace App\Modules\Importer\Services;
 
-use App\Modules\Importer\Repositories\ImporterRepository;
+use App\Modules\Importer\Models\Importer;
 use App\Modules\WorkOrder\Models\WorkOrder;
 use Illuminate\Container\Container;
+use Illuminate\Database\QueryException;
 use Symfony\Component\DomCrawler\Crawler;
 
 class WorkOrdersParserService
@@ -15,7 +16,7 @@ class WorkOrdersParserService
     protected $app;
 
     /**
-     * @var ImporterRepository
+     * @var Importer
      */
     protected $importer;
 
@@ -27,21 +28,21 @@ class WorkOrdersParserService
     /**
      * @var integer
      */
-    protected $parsedOrders;
+    protected $parsedOrders = 0;
 
     /**
      * @vaer integer
      */
-    protected $newOrders;
+    protected $newOrders = 0;
 
     /**
      * Initialize class parameters
      *
      * @param Container $app
-     * @param ImporterRepository $importer
+     * @param Importer $importer
      */
 
-    public function __construct(Container $app, ImporterRepository $importer)
+    public function __construct(Container $app, Importer $importer)
     {
         $this->app = $app;
         $this->importer = $importer;
@@ -49,6 +50,11 @@ class WorkOrdersParserService
 
     public function parse($file)
     {
+        $this->importer->fill([
+            'type' => 0,
+            'run_at' => (new \DateTime('now'))->format('Y-m-d H:i:s')
+        ]);
+
         $crawler = new Crawler($file);
         $rows = $crawler->filter('tr');
 
@@ -69,14 +75,12 @@ class WorkOrdersParserService
                 }
             }
         }
-        dump($this->parsedOrders);
 
         return $this;
     }
 
     public function storeWorkOrders()
     {
-        dump($this->results);
         if (!empty($this->results)) {
             foreach ($this->results as $result) {
                 if (!WorkOrder::where('work_order_number', $result['work_order_number'])->exists()) {
@@ -87,16 +91,18 @@ class WorkOrdersParserService
                     $order->received_date = $result['received_date'];
                     $order->category = $result['category'];
                     $order->fin_loc = $result['fin_loc'];
-                    dump($order);
                     $order->saveQuietly();
-                    dump('after');
-
-                    dump($this->results[$this->parsedOrders-1]);
 
                     $this->newOrders++;
                 }
             }
         }
+
+        $this->importer->fill([
+            'entries_processed' => $this->parsedOrders,
+            'entries_created' => $this->newOrders
+        ]);
+        $this->importer->saveQuietly();
     }
 
     protected function getOrderNumber($node)
