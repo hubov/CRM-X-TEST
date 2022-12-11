@@ -30,6 +30,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
+        Commands\Import::class,
         Commands\Inspire::class,
         Commands\ModuleGenerate::class,
         Commands\ModuleMakeMigration::class,
