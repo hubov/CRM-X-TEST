@@ -47,13 +47,13 @@ class WorkOrdersParserService implements WorkOrdersParserServiceContract
         $this->importer = $importer;
     }
 
+    public function setImporter(Importer $importer)
+    {
+        $this->importer = $importer;
+    }
+
     public function parse($file)
     {
-        $this->importer->fill([
-            'type' => 0,
-            'run_at' => (new \DateTime('now'))->format('Y-m-d H:i:s')
-        ]);
-
         $crawler = new Crawler($file);
         $rows = $crawler->filter('tr');
 

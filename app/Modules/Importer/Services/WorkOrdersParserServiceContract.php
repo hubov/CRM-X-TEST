@@ -2,6 +2,8 @@
 
 namespace App\Modules\Importer\Services;
 
+use App\Modules\Importer\Models\Importer;
+
 /**
  * Class WorkOrderDataServiceContract
  *
@@ -25,4 +27,6 @@ interface WorkOrdersParserServiceContract
      * @return void
      */
     public function storeWorkOrders();
+
+    public function setImporter(Importer $importer);
 }
