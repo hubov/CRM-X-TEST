@@ -20,11 +20,18 @@ class WorkOrdersParserService
     protected $importer;
 
     /**
+     * @var array
+     */
+    protected $results;
+
+    /**
      * Initialize class parameters
      *
      * @param Container $app
      * @param ImporterRepository $importer
+     * @param array $results
      */
+
     public function __construct(Container $app, ImporterRepository $importer)
     {
         $this->app = $app;
@@ -35,29 +42,46 @@ class WorkOrdersParserService
     {
         $crawler = new Crawler($file);
         $rows = $crawler->filter('tr');
-$rowsCount = 0;
+        $parsedOrders = 0;
+        $newOrders = 0;
         if (count($rows) > 0) {
             foreach ($rows as $row) {
                 $row = new Crawler($row);
                 if ((($row->attr('class') == 'rgRow') || ($row->attr('class') == 'rgAltRow')) && ($row->children()->count() > 0)) {
                     if (!WorkOrder::where('work_order_number', $row->children()->first()->text())->exists()) {
-//                        $workOrder = new WorkOrder();
-                        dump([
+                        $orderDetails = [
                             'work_order_number' => $this->getOrderNumber($row),
                             'external_id' => $this->getExternalId($row),
                             'priority' => $this->getPriority($row),
-                            'received_date' => $this->getReceivedDate($row),
+                            'received_date' => $this->formatDate($this->getReceivedDate($row)),
                             'category' => $this->getCategory($row),
                             'fin_loc' => $this->getStoreName($row)
+                        ];
+
+                        $order = new WorkOrder();
+                        $order->work_order_number = $this->getOrderNumber($row);
+                        $order->external_id = $this->getExternalId($row);
+                        $order->priority = $this->getPriority($row);
+                        $order->received_date = $this->formatDate($this->getReceivedDate($row));
+                        $order->category = $this->getCategory($row);
+                        $order->fin_loc = $this->getStoreName($row);
+                        dump($order);
+                        $order->saveQuietly();
+                        dump('after');
+
+                        dump([
+                            $orderDetails
                             ]);
+                        $newOrders++;
                     } else {
-                        dd('JUZ JEST');
+                        dump('JUZ JEST');
                     }
-                    $rowsCount++;
+                    $parsedOrders++;
                 }
             }
         }
-        dd($rowsCount);
+        dump($newOrders);
+        dump($parsedOrders);
     }
 
     protected function getOrderNumber($node)
