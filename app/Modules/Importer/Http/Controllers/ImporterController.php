@@ -55,7 +55,7 @@ class ImporterController extends Controller
 
     public function uploadFile(UploadRequest $request, WorkOrdersParserService $parser)
     {
-        $parser->parse(file_get_contents($request->file('workorders')));
+        $parser->parse(file_get_contents($request->file('workorders')))->storeWorkOrders();
     }
 
     /**
