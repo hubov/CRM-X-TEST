@@ -4,7 +4,6 @@ namespace App\Modules\Importer\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Importer\Http\Requests\UploadRequest;
-use App\Modules\Importer\Jobs\ParseWorkOrders;
 use App\Modules\Importer\Models\Importer;
 use App\Modules\Importer\Repositories\ImporterRepository;
 use App\Modules\Importer\Services\WorkOrdersParserServiceContract;
@@ -13,7 +12,6 @@ use App\Modules\Importer\Http\Requests\ImporterRequest;
 use Illuminate\Http\Response;
 use App;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\View\View;
 
 /**
  * Class ImporterController
@@ -61,117 +59,23 @@ class ImporterController extends Controller
         $importer->type = 0;
         $importer->saveQuietly();
 
-        Storage::disk('local')->put('workorders/'.$importer->id.'.html', file_get_contents($request->file('workorders')));
+        Storage::disk('local')->put('workorders/' . $importer->id . '.html', file_get_contents($request->file('workorders')));
 
-        $fileName = $importer->id.'.html';
+        $fileName = $importer->id . '.html';
 
         $parser->setImporter($importer);
-        $filePath = $parser->parse(Storage::get('workorders/'.$fileName))->storeWorkOrders();
+        $filePath = $parser->parse(Storage::get('workorders/' . $fileName))->storeWorkOrders();
 
-        $fileName = 'report-'.$importer->id.'.csv';
+        $fileName = 'report-' . $importer->id . '.csv';
 
         $headers = array(
-            "Content-type"        => "text/csv",
+            "Content-type" => "text/csv",
             "Content-Disposition" => "attachment; filename=$fileName",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
         );
 
-        return Storage::download($filePath, $fileName, $headers);
-    }
-
-    /**
-     * Display the specified Importer
-     *
-     * @param  int $id
-     *
-     * @return Response
-     */
-    public function show($id)
-    {
-        $this->checkPermissions(['importer.show']);
-        $id = (int) $id;
-
-        return response()->json($this->importerRepository->show($id));
-    }
-
-    /**
-     * Return module configuration for store action
-     *
-     * @return Response
-     */
-    public function create()
-    {
-        $this->checkPermissions(['importer.store']);
-        $rules['fields'] = $this->importerRepository->getRequestRules();
-
-        return response()->json($rules);
-    }
-
-    /**
-     * Store a newly created Importer in storage.
-     *
-     * @param ImporterRequest $request
-     *
-     * @return Response
-     */
-    public function store(ImporterRequest $request)
-    {
-        $this->checkPermissions(['importer.store']);
-        $model = $this->importerRepository->create($request->all());
-
-        return response()->json(['item' => $model], 201);
-    }
-
-    /**
-     * Display Importer and module configuration for update action
-     *
-     * @param  int $id
-     *
-     * @return Response
-     */
-    public function edit($id)
-    {
-        $this->checkPermissions(['importer.update']);
-        $id = (int) $id;
-
-        return response()->json($this->importerRepository->show($id, true));
-    }
-
-    /**
-     * Update the specified Importer in storage.
-     *
-     * @param ImporterRequest $request
-     * @param  int $id
-     *
-     * @return Response
-     */
-    public function update(ImporterRequest $request, $id)
-    {
-        $this->checkPermissions(['importer.update']);
-        $id = (int) $id;
-
-        $record = $this->importerRepository->updateWithIdAndInput($id,
-            $request->all());
-
-        return response()->json(['item' => $record]);
-    }
-
-    /**
-     * Remove the specified Importer from storage.
-     *
-     * @param  int $id
-     *
-     * @return Response
-     */
-    public function destroy($id)
-    {
-        $this->checkPermissions(['importer.destroy']);
-        App::abort(404);
-        exit;
-
-        /* $id = (int) $id;
-        $this->importerRepository->destroy($id); */
+        return response()->download(storage_path('app/public/' . $filePath), $fileName, $headers);
     }
 }
